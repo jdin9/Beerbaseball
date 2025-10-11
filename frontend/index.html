@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Beer Baseball Scoreboard</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+        --bg: #0b1320;
+        --accent: #f2c94c;
+        --muted: #8fa3bf;
+        --text: #f8f9fa;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, var(--bg), #14213d);
+        color: var(--text);
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px;
+      }
+
+      h1 {
+        margin-bottom: 8px;
+      }
+
+      .scoreboard {
+        display: grid;
+        gap: 16px;
+        max-width: 960px;
+        width: 100%;
+      }
+
+      .panel {
+        background: rgba(15, 25, 45, 0.85);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(12px);
+      }
+
+      .score-panel {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        align-items: center;
+      }
+
+      .score {
+        text-align: center;
+      }
+
+      .score span {
+        display: block;
+        font-size: 3rem;
+        font-weight: 700;
+      }
+
+      .state {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px;
+        margin-top: 12px;
+      }
+
+      .state div {
+        text-align: center;
+        font-size: 1.1rem;
+        padding: 8px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .diamond {
+        position: relative;
+        width: 220px;
+        aspect-ratio: 1 / 1;
+        margin: 0 auto;
+      }
+
+      .base {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        border: 4px solid var(--muted);
+        transform: rotate(45deg);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .base.active {
+        border-color: var(--accent);
+        background: rgba(242, 201, 76, 0.25);
+        box-shadow: 0 0 20px rgba(242, 201, 76, 0.5);
+      }
+
+      .base.first {
+        bottom: 10px;
+        right: 10px;
+      }
+
+      .base.second {
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
+      }
+
+      .base.third {
+        bottom: 10px;
+        left: 10px;
+      }
+
+      .base.home {
+        bottom: -36px;
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+
+      .roles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+      }
+
+      .roles h2 {
+        font-size: 1rem;
+        margin-bottom: 4px;
+        color: var(--muted);
+      }
+
+      .log {
+        max-height: 260px;
+        overflow-y: auto;
+        margin-top: 16px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      .log ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .log li {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        font-size: 0.95rem;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 16px;
+      }
+
+      input, select, button {
+        border-radius: 8px;
+        border: none;
+        padding: 10px 14px;
+        font-size: 1rem;
+      }
+
+      button {
+        background: var(--accent);
+        color: #0b1320;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(242, 201, 76, 0.45);
+      }
+
+      @media (max-width: 640px) {
+        .diamond {
+          width: 160px;
+        }
+        .base {
+          width: 44px;
+          height: 44px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Beer Baseball Live Scoreboard</h1>
+    <p style="margin-top: 0; color: var(--muted);">
+      Enter a game ID to follow a live matchup. Data refreshes every 5 seconds.
+    </p>
+
+    <div class="controls panel">
+      <label for="gameId">Game ID</label>
+      <input id="gameId" type="number" min="1" value="1" />
+      <button id="load">Load Game</button>
+    </div>
+
+    <div class="scoreboard">
+      <section class="panel">
+        <div class="score-panel">
+          <div class="score">
+            <strong id="awayTeam">Away</strong>
+            <span id="awayScore">0</span>
+          </div>
+          <div class="diamond">
+            <div class="base home"></div>
+            <div class="base first" id="firstBase"></div>
+            <div class="base second" id="secondBase"></div>
+            <div class="base third" id="thirdBase"></div>
+          </div>
+          <div class="score">
+            <strong id="homeTeam">Home</strong>
+            <span id="homeScore">0</span>
+          </div>
+        </div>
+        <div class="state">
+          <div>Inning: <span id="inning">1</span></div>
+          <div>Half: <span id="half">top</span></div>
+          <div>Outs: <span id="outs">0</span></div>
+          <div>Strikes: <span id="strikes">0</span></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="roles">
+          <div>
+            <h2>Offensive Shooter</h2>
+            <p id="offensiveShooter">-</p>
+          </div>
+          <div>
+            <h2>Offensive Drinker</h2>
+            <p id="offensiveDrinker">-</p>
+          </div>
+          <div>
+            <h2>Defensive Catcher</h2>
+            <p id="defensiveCatcher">-</p>
+          </div>
+          <div>
+            <h2>Defensive Drinker</h2>
+            <p id="defensiveDrinker">-</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel log">
+        <ul id="eventLog"></ul>
+      </section>
+    </div>
+
+    <script>
+      const roleMap = {
+        offensive_shooter: "offensiveShooter",
+        offensive_drinker: "offensiveDrinker",
+        defensive_catcher: "defensiveCatcher",
+        defensive_drinker: "defensiveDrinker",
+      };
+
+      let refreshTimer = null;
+      const playerCache = new Map();
+
+      async function fetchJSON(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status}`);
+        }
+        return response.json();
+      }
+
+      async function loadPlayerName(id) {
+        if (!id) return "-";
+        if (playerCache.has(id)) {
+          return playerCache.get(id);
+        }
+        const players = await fetchJSON(`/api/players`);
+        players.forEach((player) => {
+          playerCache.set(player.id, player.display_name);
+        });
+        return playerCache.get(id) || `Player #${id}`;
+      }
+
+      async function refresh(gameId) {
+        try {
+          const snapshot = await fetchJSON(`/api/games/${gameId}/snapshot`);
+          document.getElementById("awayTeam").textContent = snapshot.away_team;
+          document.getElementById("awayScore").textContent = snapshot.away_score;
+          document.getElementById("homeTeam").textContent = snapshot.home_team;
+          document.getElementById("homeScore").textContent = snapshot.home_score;
+          document.getElementById("inning").textContent = snapshot.inning;
+          document.getElementById("half").textContent = snapshot.half;
+          document.getElementById("outs").textContent = snapshot.outs;
+          document.getElementById("strikes").textContent = snapshot.strikes;
+
+          ["first", "second", "third"].forEach((base) => {
+            const element = document.getElementById(`${base}Base`);
+            if (snapshot.bases[base]) {
+              element.classList.add("active");
+            } else {
+              element.classList.remove("active");
+            }
+          });
+
+          await Promise.all(
+            Object.entries(snapshot.roles).map(async ([role, playerId]) => {
+              const target = document.getElementById(roleMap[role]);
+              if (!target) return;
+              target.textContent = await loadPlayerName(playerId);
+            })
+          );
+
+          const events = await fetchJSON(`/api/games/${gameId}/events`);
+          const log = document.getElementById("eventLog");
+          log.innerHTML = "";
+          events.slice(-15).forEach((event) => {
+            const item = document.createElement("li");
+            const offense = event.offense_player_id ? playerCache.get(event.offense_player_id) || `Player #${event.offense_player_id}` : "-";
+            const defense = event.defense_player_id ? playerCache.get(event.defense_player_id) || `Player #${event.defense_player_id}` : "-";
+            item.textContent = `${new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${event.event_type} (${event.outcome}) · O: ${offense} · D: ${defense}`;
+            log.prepend(item);
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function startPolling(gameId) {
+        if (refreshTimer) {
+          clearInterval(refreshTimer);
+        }
+        refresh(gameId);
+        refreshTimer = setInterval(() => refresh(gameId), 5000);
+      }
+
+      document.getElementById("load").addEventListener("click", () => {
+        const gameId = document.getElementById("gameId").value;
+        if (!gameId) {
+          alert("Enter a valid game id");
+          return;
+        }
+        startPolling(gameId);
+      });
+    </script>
+  </body>
+</html>
