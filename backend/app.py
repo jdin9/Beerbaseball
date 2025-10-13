@@ -103,6 +103,12 @@ def create_app() -> Flask:
             games = session.query(Game).order_by(Game.created_at.desc()).all()
             return jsonify(games_schema.dump(games))
 
+    @app.get("/api/games/next-id")
+    def next_game_id():
+        with session_scope() as session:
+            last_id = session.query(func.max(Game.id)).scalar()
+            return jsonify({"next_id": (last_id or 0) + 1})
+
     @app.get("/api/games/<int:game_id>")
     def get_game(game_id: int):
         with session_scope() as session:

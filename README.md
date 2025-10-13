@@ -1,12 +1,12 @@
 # Beerbaseball
 
-Beer Baseball is a web application that keeps score, tracks bases, and records player actions for the drinking game variant of baseball. This repository now contains a Flask backend with SQLite persistence and a lightweight spectator scoreboard UI.
+Beer Baseball is a web application that keeps score, tracks bases, and records player actions for the drinking game variant of baseball. This repository now contains a Flask backend with SQLite persistence, a remote-viewer scoreboard, and an operator "control booth" for recording plays.
 
 ## Tech stack
 
 - **Backend:** Python 3, Flask, SQLAlchemy, Marshmallow
 - **Database:** SQLite (configurable via `DATABASE_URL` environment variable)
-- **Frontend:** Static HTML/JavaScript dashboard served separately (see `frontend/index.html`)
+- **Frontend:** Static HTML/JavaScript dashboards served separately (`frontend/index.html` for spectators, `frontend/control.html` for operators)
 
 ## Getting started
 
@@ -29,7 +29,11 @@ Beer Baseball is a web application that keeps score, tracks bases, and records p
 
 3. **Open the spectator scoreboard**
 
-   Serve the `frontend` directory with any static file server (e.g. `python -m http.server 8000`) and open `http://localhost:8000/index.html` in your browser. Use the control at the top to enter an active game ID and follow the action in real time.
+   Serve the `frontend` directory with any static file server (e.g. `python -m http.server 8000`) and open `http://localhost:8000/index.html` in your browser. The board automatically tunes to the most recent game but you can enter any ID to follow live. Bases glow, counts display via light indicators, and the event log refreshes every five seconds.
+
+4. **Launch the control booth (game operator UI)**
+
+   Open `http://localhost:8000/control.html` to create games, assign positions, and record every play with a tap. The next game ID field pulls from the backend automatically so new games chain off the previous record.
 
 ## Core API endpoints
 
@@ -38,6 +42,7 @@ Beer Baseball is a web application that keeps score, tracks bases, and records p
 | `POST` | `/api/players` | Create a player |
 | `GET`  | `/api/players` | List all players |
 | `POST` | `/api/games` | Create a game and optionally assign initial positions |
+| `GET`  | `/api/games/next-id` | Return the next available auto-incrementing game ID |
 | `PATCH`| `/api/games/<id>/roles` | Update position assignments |
 | `GET`  | `/api/games/<id>` | Retrieve the raw game record |
 | `GET`  | `/api/games/<id>/snapshot` | Live scoreboard state |
@@ -57,7 +62,7 @@ Beer Baseball is a web application that keeps score, tracks bases, and records p
 
 ## Next steps
 
-- Build management UI for scoring controls (currently you interact via API calls).
 - Add authentication before sharing publicly.
 - Extend the analytics view with richer charts and filters.
+- Surface aggregated player leaderboards inside the web UI.
 
