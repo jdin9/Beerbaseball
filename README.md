@@ -39,6 +39,20 @@ Beer Baseball is a web application that keeps score, tracks bases, and records p
 
    Navigate to `http://localhost:8000/stats.html` for a live leaderboard of player production across every recorded game. Search, sort by any column, or trigger a manual refresh if you want the latest stats between auto-updates.
 
+## Quick preview checklist
+
+If you only want to view the app in your browser, follow this abbreviated flow after cloning the repository:
+
+1. Install the backend dependencies inside `backend/` (one-time setup).
+2. Run the Flask API with `flask --app app:app --debug run` from the `backend/` folder.
+3. In a second terminal, serve the `frontend/` directory (e.g. `python -m http.server 8000`).
+4. Visit the pages you need:
+   - Spectator scoreboard: `http://localhost:8000/index.html`
+   - Control booth (enter plays): `http://localhost:8000/control.html`
+   - Player stats leaderboard: `http://localhost:8000/stats.html`
+
+Keeping both processes running lets you interact with the dashboards live while they read from and write to the API.
+
 ## Core API endpoints
 
 | Method | Endpoint | Description |
