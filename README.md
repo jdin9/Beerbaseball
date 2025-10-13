@@ -35,6 +35,10 @@ Beer Baseball is a web application that keeps score, tracks bases, and records p
 
    Open `http://localhost:8000/control.html` to create games, assign positions, and record every play with a tap. The next game ID field pulls from the backend automatically so new games chain off the previous record.
 
+5. **Check out the player leaderboards**
+
+   Navigate to `http://localhost:8000/stats.html` for a live leaderboard of player production across every recorded game. Search, sort by any column, or trigger a manual refresh if you want the latest stats between auto-updates.
+
 ## Core API endpoints
 
 | Method | Endpoint | Description |

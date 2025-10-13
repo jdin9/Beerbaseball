@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Beer Baseball Player Leaders</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+        --bg: #07162a;
+        --bg-secondary: rgba(12, 28, 49, 0.85);
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #f5d547;
+        --accent-dark: #c9ab2b;
+        --text: #f8f9fa;
+        --muted: #9db0c7;
+        --success: #4ade80;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(circle at top, #13315c, #020712 65%);
+        color: var(--text);
+        padding: 32px 16px 64px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+
+      h1 {
+        margin: 0;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-align: center;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin: 8px 0 20px;
+      }
+
+      .nav a {
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.75rem;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      }
+
+      .nav a:hover {
+        background: rgba(245, 213, 71, 0.25);
+        color: var(--text);
+        transform: translateY(-1px);
+      }
+
+      .nav a.active {
+        background: var(--accent);
+        color: #0b1320;
+      }
+
+      .panel {
+        width: min(1024px, 100%);
+        background: var(--bg-secondary);
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .toolbar .group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      input[type="search"] {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 1rem;
+        background: rgba(8, 20, 38, 0.7);
+        color: var(--text);
+        min-width: 220px;
+      }
+
+      button.refresh {
+        border-radius: 999px;
+        border: none;
+        background: var(--accent);
+        color: #08111f;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        padding: 10px 18px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      button.refresh:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(245, 213, 71, 0.35);
+      }
+
+      .status {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        border-radius: 18px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 640px;
+      }
+
+      thead {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      th,
+      td {
+        padding: 14px 16px;
+        text-align: left;
+      }
+
+      th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--muted);
+        cursor: pointer;
+        position: relative;
+        user-select: none;
+      }
+
+      th button {
+        background: none;
+        border: none;
+        color: inherit;
+        font: inherit;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+
+      tbody tr:nth-of-type(even) {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      tbody tr:hover {
+        background: rgba(245, 213, 71, 0.08);
+      }
+
+      tbody td {
+        font-size: 0.95rem;
+        letter-spacing: 0.02em;
+      }
+
+      td.rank {
+        width: 48px;
+        text-align: center;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      td.points {
+        font-weight: 600;
+      }
+
+      .metric {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 0.85rem;
+      }
+
+      .metric span.value {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .metric span.label {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.68rem;
+      }
+
+      .empty {
+        text-align: center;
+        padding: 28px;
+        color: var(--muted);
+      }
+
+      .error {
+        color: var(--accent);
+      }
+
+      @media (max-width: 720px) {
+        .toolbar {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 16px;
+        }
+
+        .toolbar .group {
+          justify-content: space-between;
+        }
+
+        input[type="search"] {
+          width: 100%;
+          min-width: unset;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Beer Baseball Player Leaders</h1>
+    <p class="subtitle">Aggregate stats across all completed games.</p>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html">Scoreboard</a>
+      <a href="control.html">Control Booth</a>
+      <a href="stats.html" class="active">Player Stats</a>
+    </nav>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div class="group">
+          <label>
+            Search Players
+            <input id="search" type="search" placeholder="Start typing a name" />
+          </label>
+        </div>
+        <div class="group">
+          <button class="refresh" id="refresh">Refresh</button>
+          <span class="status" id="status" aria-live="polite">Loading…</span>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table aria-describedby="status">
+          <thead>
+            <tr>
+              <th scope="col">Rank</th>
+              <th scope="col">
+                <button data-sort="name" type="button">Player <span class="sort" aria-hidden="true">⇅</span></button>
+              </th>
+              <th scope="col">
+                <button data-sort="points_for" type="button">Points <span class="sort" aria-hidden="true">⇅</span></button>
+              </th>
+              <th scope="col">
+                <button data-sort="shots_home" type="button">Shots Home <span class="sort" aria-hidden="true">⇅</span></button>
+              </th>
+              <th scope="col">
+                <button data-sort="shots_taken" type="button">Shots Taken <span class="sort" aria-hidden="true">⇅</span></button>
+              </th>
+              <th scope="col">
+                <button data-sort="steals_success" type="button">Steals Won <span class="sort" aria-hidden="true">⇅</span></button>
+              </th>
+              <th scope="col">
+                <button data-sort="catches_made" type="button">Catches <span class="sort" aria-hidden="true">⇅</span></button>
+              </th>
+              <th scope="col">Shot %</th>
+            </tr>
+          </thead>
+          <tbody id="statsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <script>
+      const bodyEl = document.getElementById("statsBody");
+      const statusEl = document.getElementById("status");
+      const searchEl = document.getElementById("search");
+      const refreshBtn = document.getElementById("refresh");
+      const sortButtons = document.querySelectorAll("th button[data-sort]");
+
+      let players = [];
+      let sortKey = "points_for";
+      let sortDirection = "desc";
+      let refreshTimer = null;
+
+      function formatShotPercent(row) {
+        if (!row.shots_taken) return "—";
+        return `${((row.shots_home / row.shots_taken) * 100).toFixed(1)}%`;
+      }
+
+      function render() {
+        const query = searchEl.value.trim().toLowerCase();
+        const filtered = players
+          .filter((player) => player.name.toLowerCase().includes(query))
+          .sort((a, b) => {
+            const aVal = a[sortKey];
+            const bVal = b[sortKey];
+            if (typeof aVal === "string" && typeof bVal === "string") {
+              return sortDirection === "asc"
+                ? aVal.localeCompare(bVal)
+                : bVal.localeCompare(aVal);
+            }
+            return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
+          });
+
+        bodyEl.innerHTML = "";
+
+        if (!filtered.length) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.colSpan = 8;
+          cell.className = "empty";
+          cell.textContent = players.length
+            ? "No players match that search yet."
+            : "No stats yet — record a game to see leaders.";
+          row.appendChild(cell);
+          bodyEl.appendChild(row);
+          return;
+        }
+
+        filtered.forEach((player, index) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="rank">${index + 1}</td>
+            <td>${player.name}</td>
+            <td class="points">${player.points_for}</td>
+            <td>
+              <div class="metric">
+                <span class="value">${player.shots_home}</span>
+                <span class="label">made</span>
+              </div>
+            </td>
+            <td>
+              <div class="metric">
+                <span class="value">${player.shots_taken}</span>
+                <span class="label">attempts</span>
+              </div>
+            </td>
+            <td>
+              <div class="metric">
+                <span class="value">${player.steals_success}</span>
+                <span class="label">wins</span>
+              </div>
+            </td>
+            <td>
+              <div class="metric">
+                <span class="value">${player.catches_made}</span>
+                <span class="label">catches</span>
+              </div>
+            </td>
+            <td>${formatShotPercent(player)}</td>
+          `;
+          bodyEl.appendChild(row);
+        });
+      }
+
+      function setStatus(message, isError = false) {
+        statusEl.textContent = message;
+        statusEl.classList.toggle("error", isError);
+      }
+
+      async function fetchStats({ silent = false } = {}) {
+        if (!silent) {
+          setStatus("Loading…");
+        }
+        try {
+          const response = await fetch("/api/stats/players");
+          if (!response.ok) {
+            throw new Error(`Request failed: ${response.status}`);
+          }
+          players = await response.json();
+          const now = new Date();
+          setStatus(`Updated ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+          render();
+        } catch (error) {
+          console.error(error);
+          setStatus("Unable to load stats. Try refreshing.", true);
+          players = [];
+          render();
+        }
+      }
+
+      function changeSort(key) {
+        if (sortKey === key) {
+          sortDirection = sortDirection === "asc" ? "desc" : "asc";
+        } else {
+          sortKey = key;
+          sortDirection = key === "name" ? "asc" : "desc";
+        }
+        sortButtons.forEach((button) => {
+          const indicator = button.querySelector(".sort");
+          if (!indicator) return;
+          if (button.dataset.sort === sortKey) {
+            indicator.textContent = sortDirection === "asc" ? "↑" : "↓";
+          } else {
+            indicator.textContent = "⇅";
+          }
+        });
+        render();
+      }
+
+      searchEl.addEventListener("input", () => render());
+      refreshBtn.addEventListener("click", () => fetchStats());
+      sortButtons.forEach((button) =>
+        button.addEventListener("click", () => changeSort(button.dataset.sort))
+      );
+
+      async function startAutoRefresh() {
+        await fetchStats();
+        if (refreshTimer) {
+          clearInterval(refreshTimer);
+        }
+        refreshTimer = setInterval(() => fetchStats({ silent: true }), 15000);
+      }
+
+      startAutoRefresh();
+    </script>
+  </body>
+</html>
