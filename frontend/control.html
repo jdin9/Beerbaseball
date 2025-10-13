@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Beer Baseball Control Booth</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+        --bg: #040b14;
+        --panel: rgba(12, 26, 44, 0.85);
+        --border: rgba(255, 255, 255, 0.1);
+        --accent: #f5d547;
+        --accent-dark: #c9ab2b;
+        --text: #f8f9fa;
+        --muted: #99abc1;
+        --danger: #f87171;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(160deg, #06142a, #03060c 65%);
+        color: var(--text);
+        padding: 32px 20px 56px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        align-items: center;
+      }
+
+      h1 {
+        margin: 0;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin: 8px 0 4px;
+      }
+
+      .nav a {
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.75rem;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--muted);
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      }
+
+      .nav a:hover {
+        background: rgba(245, 213, 71, 0.25);
+        color: var(--text);
+        transform: translateY(-1px);
+      }
+
+      .nav a.active {
+        background: var(--accent);
+        color: #050910;
+      }
+
+      .layout {
+        width: min(1080px, 100%);
+        display: grid;
+        gap: 20px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border-radius: 20px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+      }
+
+      .panel h2 {
+        margin: 0 0 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+
+      .grid-two {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      input, select {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(4, 12, 24, 0.65);
+        color: var(--text);
+        padding: 10px 14px;
+        font-size: 1rem;
+      }
+
+      button {
+        border-radius: 999px;
+        border: none;
+        background: var(--accent);
+        color: #050910;
+        padding: 11px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(245, 213, 71, 0.4);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .danger {
+        background: var(--danger);
+        color: #180202;
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .actions {
+        display: grid;
+        gap: 16px;
+      }
+
+      .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .status-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        font-size: 0.95rem;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+      }
+
+      .status-bar span {
+        background: rgba(4, 12, 24, 0.6);
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .log {
+        max-height: 260px;
+        overflow-y: auto;
+        margin-top: 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(2, 7, 14, 0.6);
+      }
+
+      .log ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .log li {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.92rem;
+      }
+
+      .helper {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      @media (max-width: 720px) {
+        body {
+          padding: 24px 12px 48px;
+        }
+
+        button {
+          width: 100%;
+        }
+
+        .action-group {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Beer Baseball Control Booth</h1>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html">Scoreboard</a>
+      <a href="control.html" class="active">Control Booth</a>
+      <a href="stats.html">Player Stats</a>
+    </nav>
+    <p class="helper">Game operators enter actions here. Spectators should use the scoreboard page.</p>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>Game Setup</h2>
+        <div class="grid-two">
+          <label>
+            Next Game ID
+            <input id="nextGameId" type="text" disabled />
+          </label>
+          <label>
+            Active Game
+            <input id="activeGame" type="number" min="1" placeholder="None" />
+          </label>
+        </div>
+        <div class="grid-two" style="margin-top: 16px;">
+          <label>
+            Home Team
+            <input id="homeTeamInput" type="text" placeholder="Home" />
+          </label>
+          <label>
+            Away Team
+            <input id="awayTeamInput" type="text" placeholder="Away" />
+          </label>
+        </div>
+        <div class="helper">Create a game before recording plays or load a previous game. Game IDs auto-increment.</div>
+        <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+          <button id="createGame">Create Game</button>
+          <button id="refreshNext">Refresh Next ID</button>
+          <button id="loadGame">Load Game</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Assign Positions</h2>
+        <div class="grid-two">
+          <label>
+            Offensive Shooter
+            <select id="offensiveShooter"></select>
+          </label>
+          <label>
+            Offensive Drinker
+            <select id="offensiveDrinker"></select>
+          </label>
+          <label>
+            Defensive Catcher
+            <select id="defensiveCatcher"></select>
+          </label>
+          <label>
+            Defensive Drinker
+            <select id="defensiveDrinker"></select>
+          </label>
+        </div>
+        <div class="helper">Players list comes from the master roster. Update anytime mid-game.</div>
+        <div style="margin-top: 16px;">
+          <button id="saveRoles">Save Roles</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Record Plays</h2>
+        <div class="status-bar">
+          <span>Game ID: <strong id="statusGame">-</strong></span>
+          <span>Inning: <strong id="statusInning">-</strong></span>
+          <span>Half: <strong id="statusHalf">-</strong></span>
+          <span>Score: <strong id="statusScore">0 - 0</strong></span>
+        </div>
+        <div class="actions" style="margin-top: 18px;">
+          <div>
+            <h3 style="margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; color: var(--muted);">Shots</h3>
+            <div class="action-group" id="shotButtons"></div>
+          </div>
+          <div>
+            <h3 style="margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; color: var(--muted);">Steals</h3>
+            <div class="action-group" id="stealButtons"></div>
+          </div>
+          <div>
+            <h3 style="margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; color: var(--muted);">Bunts</h3>
+            <div class="action-group" id="buntButtons"></div>
+          </div>
+          <div>
+            <h3 style="margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.85rem; color: var(--muted);">Knock Cups</h3>
+            <div class="grid-two">
+              <label>
+                First Base
+                <input id="knockFirst" type="number" min="0" value="0" />
+              </label>
+              <label>
+                Second Base
+                <input id="knockSecond" type="number" min="0" value="0" />
+              </label>
+              <label>
+                Third Base
+                <input id="knockThird" type="number" min="0" value="0" />
+              </label>
+            </div>
+            <div style="margin-top: 12px;">
+              <button id="sendKnock">Apply Knock Totals</button>
+            </div>
+          </div>
+        </div>
+        <div class="log">
+          <ul id="controlLog"></ul>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const controls = {
+        nextGameId: document.getElementById("nextGameId"),
+        activeGame: document.getElementById("activeGame"),
+        homeInput: document.getElementById("homeTeamInput"),
+        awayInput: document.getElementById("awayTeamInput"),
+        createGame: document.getElementById("createGame"),
+        refreshNext: document.getElementById("refreshNext"),
+        loadGame: document.getElementById("loadGame"),
+        saveRoles: document.getElementById("saveRoles"),
+        knockFirst: document.getElementById("knockFirst"),
+        knockSecond: document.getElementById("knockSecond"),
+        knockThird: document.getElementById("knockThird"),
+        sendKnock: document.getElementById("sendKnock"),
+        statusGame: document.getElementById("statusGame"),
+        statusInning: document.getElementById("statusInning"),
+        statusHalf: document.getElementById("statusHalf"),
+        statusScore: document.getElementById("statusScore"),
+        log: document.getElementById("controlLog"),
+      };
+
+      const selectors = {
+        offensive_shooter: document.getElementById("offensiveShooter"),
+        offensive_drinker: document.getElementById("offensiveDrinker"),
+        defensive_catcher: document.getElementById("defensiveCatcher"),
+        defensive_drinker: document.getElementById("defensiveDrinker"),
+      };
+
+      const actionButtons = {
+        shot: document.getElementById("shotButtons"),
+        steal: document.getElementById("stealButtons"),
+        bunt: document.getElementById("buntButtons"),
+      };
+
+      let roster = [];
+      let activeGameId = null;
+      const allActionButtons = [];
+
+      async function fetchJSON(url, options) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`${response.status}: ${errorText}`);
+        }
+        if (response.status === 204) {
+          return null;
+        }
+        return response.json();
+      }
+
+      function populateRoster() {
+        Object.values(selectors).forEach((select) => {
+          select.innerHTML = "";
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = "-- select player --";
+          select.appendChild(placeholder);
+
+          roster.forEach((player) => {
+            const option = document.createElement("option");
+            option.value = player.id;
+            option.textContent = player.display_name;
+            select.appendChild(option);
+          });
+        });
+      }
+
+      function appendLog(message) {
+        const li = document.createElement("li");
+        li.textContent = `${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · ${message}`;
+        controls.log.prepend(li);
+      }
+
+      function setActionButtonsEnabled(enabled) {
+        allActionButtons.forEach((button) => {
+          button.disabled = !enabled;
+        });
+      }
+
+      async function refreshNextId() {
+        const data = await fetchJSON(`/api/games/next-id`);
+        controls.nextGameId.value = data.next_id;
+      }
+
+      async function refreshSnapshot() {
+        if (!activeGameId) return;
+        const snapshot = await fetchJSON(`/api/games/${activeGameId}/snapshot`);
+        controls.statusGame.textContent = activeGameId;
+        controls.statusInning.textContent = snapshot.inning;
+        controls.statusHalf.textContent = snapshot.half.toUpperCase();
+        controls.statusScore.textContent = `${snapshot.away_score} - ${snapshot.home_score}`;
+        Object.entries(selectors).forEach(([role, select]) => {
+          const assignedId = snapshot.roles[role];
+          if (assignedId) {
+            select.value = String(assignedId);
+          } else {
+            select.value = "";
+          }
+        });
+        controls.activeGame.value = activeGameId;
+      }
+
+      function ensureGameSelected() {
+        if (!activeGameId) {
+          alert("Create or select a game first.");
+          throw new Error("No active game");
+        }
+      }
+
+      async function createGame() {
+        const home = controls.homeInput.value.trim() || "Home";
+        const away = controls.awayInput.value.trim() || "Away";
+        const payload = {
+          home_team: home,
+          away_team: away,
+          offensive_shooter_id: selectors.offensive_shooter.value
+            ? Number(selectors.offensive_shooter.value)
+            : null,
+          offensive_drinker_id: selectors.offensive_drinker.value
+            ? Number(selectors.offensive_drinker.value)
+            : null,
+          defensive_catcher_id: selectors.defensive_catcher.value
+            ? Number(selectors.defensive_catcher.value)
+            : null,
+          defensive_drinker_id: selectors.defensive_drinker.value
+            ? Number(selectors.defensive_drinker.value)
+            : null,
+        };
+
+        const game = await fetchJSON(`/api/games`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        activeGameId = game.id;
+        controls.activeGame.value = game.id;
+        appendLog(`Game ${game.id} created (${away} @ ${home}).`);
+        setActionButtonsEnabled(true);
+        await refreshSnapshot();
+        await refreshNextId();
+      }
+
+      async function loadExistingGame() {
+        const value = Number(controls.activeGame.value);
+        if (!value) {
+          alert("Enter a valid game ID to load.");
+          return;
+        }
+        await fetchJSON(`/api/games/${value}`);
+        activeGameId = value;
+        appendLog(`Game ${value} loaded.`);
+        setActionButtonsEnabled(true);
+        await refreshSnapshot();
+      }
+
+      async function saveRoles() {
+        ensureGameSelected();
+        const payload = {};
+        Object.entries(selectors).forEach(([role, select]) => {
+          payload[`${role}_id`] = select.value ? Number(select.value) : null;
+        });
+
+        await fetchJSON(`/api/games/${activeGameId}/roles`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        appendLog("Roles updated.");
+        await refreshSnapshot();
+      }
+
+      function buildActionButtons() {
+        const shotOutcomes = [
+          { label: "1st Base", outcome: "first" },
+          { label: "2nd Base", outcome: "second" },
+          { label: "3rd Base", outcome: "third" },
+          { label: "Home Run", outcome: "home" },
+          { label: "Grand Slam", outcome: "grandslam" },
+          { label: "Strike", outcome: "strike", tone: "danger" },
+          { label: "Out", outcome: "out", tone: "danger" },
+        ];
+        const stealOutcomes = [
+          { label: "Success", outcome: "success" },
+          { label: "Bonus", outcome: "bonus" },
+          { label: "Fail", outcome: "fail", tone: "danger" },
+        ];
+        const buntOutcomes = [
+          { label: "Success", outcome: "success" },
+          { label: "Bonus", outcome: "bonus" },
+          { label: "Fail", outcome: "fail", tone: "danger" },
+        ];
+
+        function createButtons(list, type) {
+          list.forEach(({ label, outcome, tone }) => {
+            const button = document.createElement("button");
+            button.textContent = label;
+            if (tone === "danger") {
+              button.classList.add("danger");
+            }
+            button.addEventListener("click", async () => {
+              try {
+                ensureGameSelected();
+                let path = `/api/games/${activeGameId}/events/${type}`;
+                const payload = { outcome };
+                await fetchJSON(path, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload),
+                });
+                appendLog(`${type.toUpperCase()} → ${outcome}`);
+                await refreshSnapshot();
+              } catch (error) {
+                alert(error.message);
+              }
+            });
+            actionButtons[type].appendChild(button);
+            allActionButtons.push(button);
+          });
+        }
+
+        createButtons(shotOutcomes, "shot");
+        createButtons(stealOutcomes, "steal");
+        createButtons(buntOutcomes, "bunt");
+        setActionButtonsEnabled(false);
+      }
+
+      async function sendKnock() {
+        ensureGameSelected();
+        const payload = {
+          first: Number(controls.knockFirst.value || 0),
+          second: Number(controls.knockSecond.value || 0),
+          third: Number(controls.knockThird.value || 0),
+        };
+
+        await fetchJSON(`/api/games/${activeGameId}/events/knock`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        appendLog(`Knock update (1st:${payload.first}, 2nd:${payload.second}, 3rd:${payload.third})`);
+        controls.knockFirst.value = 0;
+        controls.knockSecond.value = 0;
+        controls.knockThird.value = 0;
+        await refreshSnapshot();
+      }
+
+      async function bootstrap() {
+        buildActionButtons();
+        populateRoster();
+        try {
+          roster = await fetchJSON(`/api/players`);
+          populateRoster();
+        } catch (error) {
+          appendLog("Roster not available yet. Add players once the API is reachable.");
+        }
+        try {
+          await refreshNextId();
+        } catch (error) {
+          appendLog("Next game ID unavailable. Start the API to continue.");
+        }
+      }
+
+      controls.createGame.addEventListener("click", async () => {
+        try {
+          await createGame();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      controls.refreshNext.addEventListener("click", async () => {
+        try {
+          await refreshNextId();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      controls.loadGame.addEventListener("click", async () => {
+        try {
+          await loadExistingGame();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      controls.saveRoles.addEventListener("click", async () => {
+        try {
+          await saveRoles();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      controls.sendKnock.addEventListener("click", async () => {
+        try {
+          await sendKnock();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+
+      bootstrap();
+    </script>
+  </body>
+</html>
