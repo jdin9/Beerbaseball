@@ -160,6 +160,18 @@ Whenever you want to run the app again, start at **Step 2.3** (activate the envi
 | `GET`  | `/api/stats/players` | Aggregated stats across all games |
 | `GET`  | `/api/games/<id>/export` | Download a CSV event log |
 
+## Future roadmap: "Smart Umpire" automation
+
+Beerbaseball can evolve into a fully automated experience that watches the table, understands every play, and even announces the action. Key milestones for this long-term vision include:
+
+1. **Vision-powered player and event detection** – Mount an IoT camera (paired with an edge device such as a Raspberry Pi or Jetson) to stream the game. Run computer-vision models that detect cups, balls, and player positions so the system can tell who is batting, catching, or fielding.
+2. **Outcome classification** – Combine object tracking with temporal models to recognize specific outcomes: makes vs. rims, catches vs. drops, steals, bunts, interference, and more. Low-confidence calls can be flagged for human confirmation in the control booth.
+3. **Automated scoring pipeline** – Translate the detected events into the existing REST endpoints (`/events/shot`, `/events/steal`, `/events/bunt`, etc.) so the backend state machine, snapshots, and historical stats remain authoritative.
+4. **Live announcements and commentary** – Feed structured events into a templated play-by-play generator, augment with contextual stats, and synthesize the narration using a text-to-speech engine. Display captions on the spectator board and trigger lighting or sound cues for highlight plays.
+5. **Operational robustness** – Provide assisted-umpire modes, audit logging, and graceful fallbacks to manual controls. Monitor camera health, model confidence, and wearable signals (RFID, QR codes) to keep the experience reliable and privacy-conscious.
+
+Collecting labeled footage, iteratively training the perception models, and extending the front-end dashboards with vision overlays will gradually unlock this "smart umpire" future while preserving today’s manual workflow as a safety net.
+
 ## Environment variables
 
 - `DATABASE_URL`: Override the SQLite location (e.g. `postgresql+psycopg://...`).
